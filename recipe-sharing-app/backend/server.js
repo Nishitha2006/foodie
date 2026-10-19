@@ -19,11 +19,20 @@ if (!process.env.JWT_SECRET) {
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 5050;
 
+// ---------- CORS ----------
+// CLIENT_URL can hold one URL or several separated by commas, e.g.
+// https://your-app.vercel.app,http://localhost:5173
+// Trailing slashes are removed because browsers send origins without them.
+const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173')
+  .split(',')
+  .map((url) => url.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+
 // ---------- Middleware ----------
-// Allow the React dev server to call this API.
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
+app.use(cors({ origin: allowedOrigins }));
 // Parse JSON request bodies (req.body).
 app.use(express.json({ limit: '1mb' }));
 // Serve uploaded images, e.g. http://localhost:5050/uploads/abc.jpg
@@ -83,5 +92,5 @@ app.use((err, req, res, next) => {
 // ---------- Start ----------
 await connectDB();
 app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
